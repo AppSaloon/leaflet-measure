@@ -78,6 +78,19 @@ var myMap = L.map('mapElementId', {
 
 <hr>
 
+## Methodes
+
+### loadMeasurement
+Add a measurement
+```javascript
+var myMap = L.map('mapElementId', options);
+var measureControl = L.control.measure(options);
+measureControl.addTo(myMap);
+measureControl.loadMeasurement([[lat,lng],[lat,lng]])
+```
+
+<hr>
+
 ## Control options
 
 ### position
