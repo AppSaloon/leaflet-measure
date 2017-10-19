@@ -7420,7 +7420,7 @@ L.Control.Measure = L.Control.extend({
       if (index === 0) {
         that._map.setView(vertex,18);
       }
-      that._addMeasurePoint(L.latLng(vertex[0], vertex[1]));
+      that._addMeasurePoint(L.latLng(vertex));
     });
     this._handleMeasureDoubleClick();
   },

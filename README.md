@@ -86,7 +86,7 @@ Add a measurement
 var myMap = L.map('mapElementId', options);
 var measureControl = L.control.measure(options);
 measureControl.addTo(myMap);
-measureControl.loadMeasurement([[lat,lng],[lat,lng]])
+measureControl.loadMeasurement([{lat:3.854,lng:26.784},{lat:3.2412,lng:26.455},{lat:3.2412,lng:26.455}])
 ```
 
 <hr>

@@ -73,7 +73,29 @@
     }
     var measureControl = new L.Control.Measure(options);
     measureControl.addTo(map);
-    measureControl.loadMeasurement([[29.75237164917512, -95.08777499198914],[29.750275855232783, -95.0826895236969],[29.75091857003341, -95.08231401443481],[29.752949149138463, -95.08744239807129]])
+
+    map.on('measurefinish', function (evt) {
+      writeResults(evt);
+    });
+
+    measureControl.loadMeasurement([
+    {
+      "lat": 29.75237164917512,
+      "lng": -95.08777499198914
+    },
+    {
+      "lat": 29.750275855232783,
+      "lng": -95.0826895236969
+    },
+    {
+      "lat": 29.75091857003341,
+      "lng": -95.08231401443481
+    },
+    {
+      "lat": 29.752949149138463,
+      "lng": -95.08744239807129
+    }
+  ])
 
     L.tileLayer('//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       minZoom: 6,
@@ -81,9 +103,6 @@
       attribution: '&copy; Esri &mdash; Sources: Esri, DigitalGlobe, Earthstar Geographics, CNES/Airbus DS, GeoEye, USDA FSA, USGS, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
     }).addTo(map);
 
-    map.on('measurefinish', function (evt) {
-      writeResults(evt);
-    });
 
     function writeResults (results) {
       document.getElementById('eventoutput').innerHTML = JSON.stringify({
