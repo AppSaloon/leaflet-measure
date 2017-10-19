@@ -1,4 +1,4 @@
-var path = require('path'), svg2png = require('svg2png');
+var path = require('path')
 
 module.exports = function (grunt) {
   grunt.initConfig({
@@ -18,7 +18,7 @@ module.exports = function (grunt) {
     },
     clean: {
       dist: {
-        src: ['dist/']
+        src: ['dist/*.*']
       }
     },
     browserify: {
@@ -91,7 +91,40 @@ module.exports = function (grunt) {
         commitMessage: 'release <%= version %>',
         tagMessage: 'tag <%= version %>' //default: 'Version <%= version %>'
       }
-    }
+  },
+  svg2png: {
+        all: {
+            // specify files in array format with multiple src-dest mapping
+            files: [
+                // rasterize all SVG files in "img" and its subdirectories to "img/png"
+                { cwd: 'src/images/', src: ['*.svg'], dest: 'dist/images/' }
+            ]
+        }
+    },
+    watch: {
+        css: {
+            files: 'scss/*.scss',
+            tasks: ['sass']
+        },
+        js: {
+            files: 'src/*.js',
+            tasks: ['builddev']
+        }
+    },
+    browserSync: {
+            dev: {
+                bsFiles: {
+                    src : [
+                        'dist/*.css',
+                        'dist/*.js'
+                    ]
+                },
+                options: {
+                    watchTask: true,
+                    server: './'
+                }
+            }
+        }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -101,21 +134,14 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-release');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-browser-sync');
+  grunt.loadNpmTasks('grunt-svg2png');
 
-  grunt.registerMultiTask('svg2png', 'Create PNG images from SVG', function () {
-    this.files.forEach(function (file) {
-      file.src.forEach(function (src) {
-        var png = path.basename(src, '.svg') + '.png', png2x = path.basename(src, '.svg') + '_@2X.png';
-        var dest = path.join(file.dest, png), dest2x = path.join(file.dest, png2x);
-        svg2png(src, dest, 0.5);
-        svg2png(src, dest2x, 1.0);
-      });
-    });
-  });
 
   grunt.registerTask('test', ['jshint', 'jscs']);
-  grunt.registerTask('builddev', ['clean:dist', 'browserify:dev', 'sass:dev', 'svg2png']);
+  grunt.registerTask('builddev', ['clean:dist', 'browserify:dev', 'sass:dev']);
   grunt.registerTask('build', ['test', 'clean:dist', 'browserify:build', 'uglify:build', 'sass:build', 'svg2png']);
-
-  grunt.registerTask('default', ['build']);
+  grunt.registerTask('dev', ['browserSync', 'watch', 'svg2png']);
+  grunt.registerTask('default', ['browserSync', 'watch']);
 };

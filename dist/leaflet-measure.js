@@ -794,6 +794,8 @@ Converter.prototype.getValues = function(space) {
 
 module.exports = convert;
 },{"./conversions":2}],4:[function(require,module,exports){
+'use strict'
+
 module.exports = {
 	"aliceblue": [240, 248, 255],
 	"antiquewhite": [250, 235, 215],
@@ -944,6 +946,7 @@ module.exports = {
 	"yellow": [255, 255, 0],
 	"yellowgreen": [154, 205, 50]
 };
+
 },{}],5:[function(require,module,exports){
 /* MIT license */
 var colorNames = require('color-name');
@@ -4455,6 +4458,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -7091,6 +7098,7 @@ L.Control.Measure = L.Control.extend({
     this.options.units = L.extend({}, units, this.options.units);
     this._symbols = new Symbology(_.pick(this.options, 'activeColor', 'completedColor'));
     i18n.setLocale(this.options.localization);
+    this.loadMeasurement = this._loadPolygonAndMeasure;
   },
   onAdd: function (map) {
     this._map = map;
@@ -7404,13 +7412,54 @@ L.Control.Measure = L.Control.extend({
       resultFeature.openPopup(resultFeature.getLatLng());
     }
   },
+  _loadPolygonAndMeasure: function (polygon) {
+    this._expand();
+    this._startMeasure();
+    var that = this;
+    polygon.forEach(function (vertex, index) {
+      if (index === 0) {
+        that._map.setView(vertex,18);
+      }
+      that._addMeasurePoint(L.latLng(vertex[0], vertex[1]));
+    });
+    this._handleMeasureDoubleClick();
+  },
+  // handle map click during ongoing measurement
+  // add new clicked point, update measure layers and results ui
+  _addMeasurePoint: function (latlng) {
+    var lastClick = _.last(this._latlngs),
+      vertexSymbol = this._symbols.getSymbol('measureVertex');
+
+    if (!lastClick || !latlng.equals(lastClick)) { // skip if same point as last click, happens on `dblclick`
+      this._latlngs.push(latlng);
+      this._addMeasureArea(this._latlngs);
+      this._addMeasureBoundary(this._latlngs);
+
+      this._measureVertexes.eachLayer(function (layer) {
+        layer.setStyle(vertexSymbol);
+        // reset all vertexes to non-active class - only last vertex is active
+        // `layer.setStyle({ className: 'layer-measurevertex'})` doesn't work. https://github.com/leaflet/leaflet/issues/2662
+        // set attribute on path directly
+        layer._path.setAttribute('class', vertexSymbol.className);
+      });
+
+      this._addNewVertex(latlng);
+
+      if (this._measureBoundary) {
+        this._measureBoundary.bringToFront();
+      }
+      this._measureVertexes.bringToFront();
+    }
+
+    this._updateResults();
+    this._updateMeasureStartedWithPoints();
+  },
   // handle map click during ongoing measurement
   // add new clicked point, update measure layers and results ui
   _handleMeasureClick: function (evt) {
     var latlng = this._map.mouseEventToLatLng(evt.originalEvent), // get actual latlng instead of the marker's latlng from originalEvent
       lastClick = _.last(this._latlngs),
       vertexSymbol = this._symbols.getSymbol('measureVertex');
-
     if (!lastClick || !latlng.equals(lastClick)) { // skip if same point as last click, happens on `dblclick`
       this._latlngs.push(latlng);
       this._addMeasureArea(this._latlngs);
@@ -7645,4 +7694,5 @@ module.exports = {
     decimals: 2
   }
 };
+
 },{}]},{},[44]);
